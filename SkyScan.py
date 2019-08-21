@@ -66,3 +66,17 @@ def browse_dates(origin,dest,key,deptDate='anytime',retDate=None):
     response = requests.request("GET", url, headers=headers, params=querystring)
 
     return response
+
+def parse_quotes(resp):
+    """
+    Parse response from browse_quotes output into several Pandas DataFrames
+    """
+    import json
+    from pandas.io.json import json_normalize #package for flattening json in pandas df
+    import pandas as pd
+    
+    t = json.loads(resp.text)
+    for key, val in t.items():
+        if type(val)==list
+            pd.DataFrame(t['Dates']['OutboundDates'])
+    
