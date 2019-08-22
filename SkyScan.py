@@ -89,45 +89,61 @@ def browse_dates(origin,dest,key,deptDate='anytime',retDate=None):
 
     return response
 
-def browse_dates_inbound():
-    """
-    Submit custom query to the SkyScanner Browse Inbound Dates API Endpoint and returns a Requests Response object.
-    SkyScanner Endpoint Description: 'Retrieves the cheapest dates for a given route from our cache. Must include inboundpartialdate.''
-    """
-    url_api = 'https://skyscanner-skyscanner-flight-search-v1.p.rapidapi.com/apiservices'
-    url = f"{url_api}/browsedates/v1.0/%7Bcountry%7D/%7Bcurrency%7D/%7Blocale%7D/%7Boriginplace%7D/%7Bdestinationplace%7D/%7Boutboundpartialdate%7D/%7Binboundpartialdate%7D"
+# def browse_dates_inbound():
+#     """
+#     Submit custom query to the SkyScanner Browse Inbound Dates API Endpoint and returns a Requests Response object.
+#     SkyScanner Endpoint Description: 'Retrieves the cheapest dates for a given route from our cache. Must include inboundpartialdate.''
+#     """
+#     url_api = 'https://skyscanner-skyscanner-flight-search-v1.p.rapidapi.com/apiservices'
+#     url = f"{url_api}/browsedates/v1.0/%7Bcountry%7D/%7Bcurrency%7D/%7Blocale%7D/%7Boriginplace%7D/%7Bdestinationplace%7D/%7Boutboundpartialdate%7D/%7Binboundpartialdate%7D"
 
-    headers = {
-        'x-rapidapi-host': "skyscanner-skyscanner-flight-search-v1.p.rapidapi.com",
-        'x-rapidapi-key': key
-        }
+#     headers = {
+#         'x-rapidapi-host': "skyscanner-skyscanner-flight-search-v1.p.rapidapi.com",
+#         'x-rapidapi-key': key
+#         }
 
-    response = requests.request("GET", url, headers=headers)
+#     response = requests.request("GET", url, headers=headers)
 
-    return response
+#     return response
 
 def parse_quotes(resp):
     """
-    Parse response from browse_quotes output into summative or complete return.
+    Parse response from browse_quotes into single DataFrame. Drops Currency and Places nodes.
     """
-    import json
-    import pandas as pd
+    t = json.loads(resp.text)
     
-    t = json.loads(resp.text)   
-    for key in t.keys():# returns lists
-        if 'Quotes' in key:
-            quote_node = json_normalize(t['Quotes'], meta = 'OutboundLeg') # unnest OutboundLeg dictionary
-        elif 'Carriers' in key:
-            carrier_node = pd.DataFrame(t[key]).set_index('CarrierId')
+    # Parse nodes to DataFrames, omit Currency and Location
+    quote_node = json_normalize(t['Quotes'], meta = 'OutboundLeg') # unnest OutboundLeg dictionary and append to quotes
+    carrier_node = pd.DataFrame(t['Carriers']).set_index('CarrierId') # hold carrier information to attach in line 132
     
-    carrier_names_per_quote = pd.DataFrame()
+    # Match Carrier Names to each Quote list of CarrierIds
+    carrier_names_per_quote = pd.DataFrame() # carrier name column to fill
     
-    for quote_carrier_id_lists in quote_node['OutboundLeg.CarrierIds']: # list of carriers for each quote
-        quote_carrier_names = [carrier_node.loc[id,'Name'] for id in quote_carrier_id_lists]
-        carrier_names_per_quote = carrier_names_per_quote.append(quote_carrier_names, ignore_index = True)
+    for quote_carrier_id_lists in quote_node['OutboundLeg.CarrierIds']: # a list of carriers for each row of quote table
+        quote_carrier_names = [carrier_node.loc[id,'Name'] for id in quote_carrier_id_lists] # from ids, list names
+        carrier_names_per_quote = carrier_names_per_quote.append(quote_carrier_names, ignore_index = True)# append to quote row
     
-    carrier_names_per_quote.rename(columns = {0:'CarrierNames'}, inplace = True)
-    quotes = pd.concat([quote_node, carrier_names_per_quote], axis=1)
+    carrier_names_per_quote.rename(columns = {0:'CarrierNames'}, inplace = True) # rename carrier name DataFrame
+    
+    # Append
+    quotes = pd.concat([quote_node, carrier_names_per_quote], axis=1)# append to quote DataFrame
+    
     return quotes
             
-        
+def parse_dates(resp):
+    """
+    Parse response from browse_dates into single DataFrame. Drops Currency and Places nodes.
+    """
+    # use parse_quotes above, seems really similar
+    
+    t = json.loads(resp.text)
+    quotes = parse_quotes()
+    
+    # Parse nodes to DataFrames, ['Dates','Routes' - empty]
+    dates_node = json_normalize(t['Dates'], meta = 'OutboundDates') # unnest OutboundDates dictionary and append to parent node
+    
+    # Append
+    routes = pd.concat([quote_node, dates_node], axis=1)# append to quote DataFrame
+    
+    return routes 
+
