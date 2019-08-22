@@ -130,16 +130,16 @@ def parse_quotes(resp):
     
     return quotes
             
-def parse_dates(resp):
+def parse_routes(resp):
     """
-    Parse response from browse_dates into single DataFrame. Drops Currency and Places nodes.
+    Parse response from browse_routes into single DataFrame. Drops Currency and Places nodes.
     """
     # use parse_quotes above, seems really similar
     
     t = json.loads(resp.text)
-    quotes = parse_quotes()
+    quote
     
-    # Parse nodes to DataFrames, ['Dates','Routes' - empty]
+    # Parse nodes to DataFrames, ['Dates']
     dates_node = json_normalize(t['Dates'], meta = 'OutboundDates') # unnest OutboundDates dictionary and append to parent node
     
     # Append
