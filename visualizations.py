@@ -21,7 +21,7 @@ plt.style.use('seaborn-whitegrid')
 sns.set_style("white")
 
 
-def overlapping_density(package=None, input_vars=None, target_vars=None):
+def overlapping_density(package='sns', input_vars='Role', target_vars='Salary'):
     """
     Set the characteristics of your overlapping density plot
     All arguments are set to None purely as a filler right now
@@ -45,7 +45,8 @@ def overlapping_density(package=None, input_vars=None, target_vars=None):
     # Starter code for figuring out which package to use
     if package == "sns":
         for variable in input_vars:
-            sns.kdeplot(...)
+            sns.kdeplot(clean[target_vars], hue=input_vars)
+       
     elif package == 'matplotlib':
         for variable in input_vars:
             plt.plot(..., label=None, linewidth=None, color=None, figure = fig)

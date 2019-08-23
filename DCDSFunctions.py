@@ -1,4 +1,5 @@
-"""Functions for parsing DC Data Science Data."""
+"""Functions for parsing Salary Information from h1bdata.info."""
+
 def stackoverflow_feed_sorter(feed, master_keys=['id', 'title', 'summary',
                                                  'location', 'updated',
                                                  'published']):
@@ -11,7 +12,8 @@ def stackoverflow_feed_sorter(feed, master_keys=['id', 'title', 'summary',
 
 
 def standardize_dict(dictionary, master):
-    """Check dictionary keys against master list. Return standardized output."""
+    """Check dictionary keys against master. Return standardized output."""
+
     out = dict()
     for entry in master:
         if entry in dictionary.keys():
@@ -19,7 +21,3 @@ def standardize_dict(dictionary, master):
         else:
             out[f'{entry}'] = 'None'
     return out
-
-def load_proxies():
-    url = 'https://free-proxy-list.net/'
-    resp = requests.get(url)
