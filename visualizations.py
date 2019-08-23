@@ -51,7 +51,7 @@ def overlapping_density(data, package='sns', input_cat='Role', target_vars='Sala
     return fig
 
 
-def distribution_timeseries(data, input_vars='Role', target_vars='Salary'):
+def distribution_timeseries(data, input_vars='role', target_vars='salary'):
     """ Function that returns a Seaborn timeseries of target_variable, subset by categories"""
     fig = plt.figure(figsize = (12,10))
     
@@ -68,7 +68,7 @@ def distribution_timeseries(data, input_vars='Role', target_vars='Salary'):
     
     return fig
 
-def boxplot_plot(data, package='sns', input_cat='Role', target_vars='Salary'):
+def boxplot_plot(data, package='sns', input_cat='role', target_vars='salary'):
     """
     Same specifications and requirements as overlapping density plot
 
@@ -82,7 +82,7 @@ def boxplot_plot(data, package='sns', input_cat='Role', target_vars='Salary'):
     :param target_vars:    the y variable of your plot, what you are comparing
     :return:               fig to be enhanced in subsequent visualization functions
     """
-  input_vars = set(list(data[input_cat]))
+    input_vars = set(list(data[input_cat]))
 
     # Set size of figure
     fig = plt.figure(figsize=(16, 10), dpi=80)
@@ -99,7 +99,7 @@ def boxplot_plot(data, package='sns', input_cat='Role', target_vars='Salary'):
     return fig
 
 
-def visualization_one(data, target_var = 'Salary', input_vars= 'Role', output_image_name='Salary_by_Role'):
+def visualization_one(data, target_var = 'salary', input_vars= 'role', output_image_name='Salary_by_Role'):
     """
     The visualization functions are what is used to create each individual image.
     The function should be repeatable if not generalizable
