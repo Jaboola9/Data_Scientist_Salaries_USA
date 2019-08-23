@@ -1,8 +1,4 @@
-"""
-This module is for your final visualization code
-One visualization per hypothesis question is required
-A framework for each type of visualization is provided
-"""
+"""Functions for visualizations."""
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -25,15 +21,11 @@ sns.set_style("white")
 
 def overlapping_density(data, input_cat='role', target_vars='salary',
                         package='sns'):
-    """
-    Function takes package name, input variables, and target variable as input.
-    Returns a figure with overlaping density plots on a single set of axes.
-    """
+    """Return a figure with overlaping density plots."""
     input_vars = list(set(data[input_cat]))
 
     # Set size of figure
     fig, axes = plt.subplots(figsize=(16, 10), dpi=80)
-
     if package == "sns":
         for variable in input_vars:
             sns.kdeplot(data[data[input_cat] == variable][target_vars],
@@ -44,8 +36,7 @@ def overlapping_density(data, input_cat='role', target_vars='salary',
             plt.hist(data[data[input_cat] == variable][target_vars],
                      density=True, label=variable, figure=fig)
 
-    plt.title('H1B '+target_vars.title()+' Distribution by '
-              + input_vars.title())
+    plt.title('H1B '+target_vars.title()+' Distribution by '+input_cat.title())
     plt.xlabel(target_vars.title())
     plt.ylabel('Density')
     plt.legend(fontsize=10)
@@ -53,26 +44,16 @@ def overlapping_density(data, input_cat='role', target_vars='salary',
     return fig
 
 
-def distribution_timeseries(data, time_cat='year', input_cats='role',
+def distribution_timeseries(data, time_cat='year', input_cat='role',
                             target_vars='salary'):
-    """Function that returns timeseries of target_variable, by categories"""
-    input_vars = list(set(data[input_cat]))
-
+    """Plot timeseries of target_variable, by categories."""
     fig = plt.figure(figsize=(12, 10), dpi=80)
-    for variable in input_vars:
-        sns.lineplot(x=time_cat, y=target_vars, data=data, hue=input_cat,
-                     figure=fig)
+    sns.lineplot(x=time_cat, y=target_vars, data=data, hue=input_cat,
+                 figure=fig)
+    plt.ylabel(target_vars.title())
 
-    if target_vars == 'salary':
-        locs, labels = plt.yticks()
-        ticks = ax.get_yticks()
-        plt.yticks(locs, ticks/1000)
-        plt.ylabel('Salary (K)')
-    else:
-        plt.ylabel(target_vars.title())
-
-    plt.xlabel(input_cats.title())
-    plt.title('H1B '+target_vars.title()+' Information by '+input_vars.title())
+    plt.xlabel(input_cat.title())
+    plt.title('H1B '+target_vars.title()+' Information by '+input_cat.title())
     plt.legend(ncol=3, fontsize=11)
 
     return fig
@@ -80,8 +61,7 @@ def distribution_timeseries(data, time_cat='year', input_cats='role',
 
 def boxplot_plot(data, grouping='year', input_cat='role', target_vars='salary',
                  package='sns'):
-    """ Same specifications and requirements as overlapping density plot."""
-
+    """Plot box plot of target_variable, by categories and grouping."""
     input_vars = set(data[input_cat])
 
     # Set size of figure
@@ -98,7 +78,7 @@ def boxplot_plot(data, grouping='year', input_cat='role', target_vars='salary',
     plt.xlabel(grouping.title())
 
     if ((grouping == 'role') | (grouping == 'region') |
-    (grouping == 'industry')):
+       (grouping == 'industry')):
         for item in ax.get_xticklabels():
             item.set_rotation(45)
             plt.xlabel(grouping.title(), fontsize=8)
@@ -109,20 +89,8 @@ def boxplot_plot(data, grouping='year', input_cat='role', target_vars='salary',
 
 
 def visualization_one(data, output_image_name='Salary_Distribution_by_Role'):
-    """
-    :param target_var:
-    :param input_vars:
-    :param output_image_name: the desired name for the image saved
-    :return: outputs a saved png file and returns a fig object for testing
-    """
-
+    """Distribution of Salaries by Role."""
     fig = overlapping_density(data, input_cat='role', target_vars='salary')
-
-    plt.xlabel(target_vars.title(), figure=fig)
-    plt.ylabel('Density', figure=fig)
-#     plt.title(target_vars.title()+' Distribution by '+input_vars.title(), figure=fig)
-    plt.legend(fontsize=10)
-    plt.show()
 
     # exporting the image to the img folder
     plt.savefig(f'img/{output_image_name}.png', transparent=True,
@@ -131,7 +99,8 @@ def visualization_one(data, output_image_name='Salary_Distribution_by_Role'):
 
 
 def visualization_two(data, target_var='salary', input_vars='region',
-                      output_image_name='Salary_by_Region'):
+                      output_image_name='Density_by_Region'):
+    """Distribution of Salaries by Region."""
     fig = overlapping_density(data, input_cat=input_vars,
                               target_vars=target_var)
     plt.savefig(f'img/{output_image_name}.png', transparent=True,
@@ -140,10 +109,17 @@ def visualization_two(data, target_var='salary', input_vars='region',
     return fig
 
 
-def visualization_three(output_image_name):
+def visualization_three(data, output_image_name='Salaries_over_Time'):
+    """Distribution of Salaries over Time."""
     fig = distribution_timeseries(data)
+    plt.savefig(f'img/{output_image_name}.png', transparent=True,
+                figure=fig)
     return fig
 
 
-def visualization_four(output_image_name):
-    pass
+def visualization_four(data, output_image_name='BoxPlot_Roles'):
+    """Box plots of salaries by year, role."""
+    fig = boxplot_plot(data)
+    plt.savefig(f'img/{output_image_name}.png', transparent=True,
+                figure=fig)
+    return fig
