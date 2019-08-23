@@ -21,13 +21,10 @@ plt.style.use('seaborn-whitegrid')
 sns.set_style("white")
 
 
-def overlapping_density(package='sns', input_vars='Role', target_vars='Salary'):
+def overlapping_density(package='sns', input_vars=['Role'], target_vars='Salary'):
     """
-    Set the characteristics of your overlapping density plot
-    All arguments are set to None purely as a filler right now
-
     Function takes package name, input variables(categories), and target variable as input.
-    Returns a figure
+    Returns a figure with overlaping density plots on a single set of axes.
 
     Should be able to call this function in later visualization code.
 
@@ -40,7 +37,7 @@ def overlapping_density(package='sns', input_vars='Role', target_vars='Salary'):
     """
 
     # Set size of figure
-    fig = plt.figure(figsize=(16, 10), dpi=80)
+    fig,axes = plt.subplots(figsize=(16, 10), dpi=80, nrow=nrow)
 
     # Starter code for figuring out which package to use
     if package == "sns":
@@ -49,13 +46,12 @@ def overlapping_density(package='sns', input_vars='Role', target_vars='Salary'):
        
     elif package == 'matplotlib':
         for variable in input_vars:
-            plt.plot(..., label=None, linewidth=None, color=None, figure = fig)
+            plt.plot(clean[target_vars], label=None, linewidth=None, color=None, figure = fig)
 
     return fig
 
 
-
-def boxplot_plot(package=None, input_vars=None, target_vars=None):
+def boxplot_plot(package='sns', input_vars=['Role'], target_vars='Salary'):
     """
     Same specifications and requirements as overlapping density plot
 
@@ -69,9 +65,19 @@ def boxplot_plot(package=None, input_vars=None, target_vars=None):
     :param target_vars:    the y variable of your plot, what you are comparing
     :return:               fig to be enhanced in subsequent visualization functions
     """
-    plt.figure(figsize=(16, 10), dpi=80)
+    # Set size of figure
+    fig,axes = plt.subplots(figsize=(16, 10), dpi=80, nrow=nrow)
+    
+    # Starter code for figuring out which package to use
+    if package == "sns":
+        for variable in input_vars:
+            sns.boxplot(clean[target_vars], hue=input_vars, ax=axes[nr])
+       
+    elif package == 'matplotlib': # apparently want a line plot here?
+        for variable in input_vars:
+            plt.box(clean[clean[variable][target_vars], label=variable, linewidth=None, color=None, figure = fig, kind='hist')
 
-    pass
+    return fig
 
 
 def visualization_one(target_var = None, input_vars= None, output_image_name=None):
