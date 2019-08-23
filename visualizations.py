@@ -39,19 +39,36 @@ def overlapping_density(package='sns', input_vars=['Role'], target_vars='Salary'
     # Set size of figure
     fig,axes = plt.subplots(figsize=(16, 10), dpi=80, nrow=nrow)
 
-    # Starter code for figuring out which package to use
     if package == "sns":
         for variable in input_vars:
             sns.kdeplot(clean[target_vars], hue=input_vars)
        
     elif package == 'matplotlib':
         for variable in input_vars:
-            plt.plot(clean[target_vars], label=None, linewidth=None, color=None, figure = fig)
+            plt.hist(clean[target_vars], density=True, label=variable, figure = fig)
 
     return fig
 
 
-def boxplot_plot(package='sns', input_vars=['Role'], target_vars='Salary'):
+def distribution_timeseries(data, input_vars='Role', target_vars='Salary'):
+    """ Function that returns a Seaborn timeseries of target_variable, subset by categories"""
+    fig = plt.figure(figsize = (12,10))
+    
+    ax = sns.lineplot(x="Year", y=target_vars, data=data, hue=input_vars)
+    plt.ylabel('Salary (K)')
+    plt.xlabel('Year')
+    
+    locs,labels = plt.yticks()
+    ticks = ax.get_yticks()
+    plt.yticks(locs, ticks/1000)
+    
+    plt.title('H1B '+target_vars+' Information by '+input_vars)
+    plt.legend(ncol = 3, fontsize = 11, loc='upper center')
+    
+    return fig
+
+
+def boxplot_plot(data, package='sns', input_cat=['Role'], target_vars='Salary'):
     """
     Same specifications and requirements as overlapping density plot
 
@@ -65,13 +82,13 @@ def boxplot_plot(package='sns', input_vars=['Role'], target_vars='Salary'):
     :param target_vars:    the y variable of your plot, what you are comparing
     :return:               fig to be enhanced in subsequent visualization functions
     """
+    input_vars = set(data[input_cat])
     # Set size of figure
-    fig,axes = plt.subplots(figsize=(16, 10), dpi=80, nrow=nrow)
+    fig,axes = plt.subplots(figsize=(16, 10), dpi=80)
     
-    # Starter code for figuring out which package to use
     if package == "sns":
         for variable in input_vars:
-            sns.boxplot(clean[target_vars], hue=input_vars, ax=axes[nr])
+            sns.boxplot(clean[target_vars], hue=input_vars)
        
     elif package == 'matplotlib': # apparently want a line plot here?
         for variable in input_vars:
@@ -80,7 +97,7 @@ def boxplot_plot(package='sns', input_vars=['Role'], target_vars='Salary'):
     return fig
 
 
-def visualization_one(target_var = None, input_vars= None, output_image_name=None):
+def visualization_one(data, target_var = 'Salary', input_vars= 'Role', output_image_name='Salary_by_Role'):
     """
     The visualization functions are what is used to create each individual image.
     The function should be repeatable if not generalizable
@@ -91,10 +108,8 @@ def visualization_one(target_var = None, input_vars= None, output_image_name=Non
     :param output_image_name: the desired name for the image saved
     :return: outputs a saved png file and returns a fig object for testing
     """
-    ###
-    # Main chunk of code here
-    # Call either box plot or density for each of these viz
-    ###
+    overlapping_density
+                          
 
     # Starter code for labeling the image
     plt.xlabel(None, figure = fig)

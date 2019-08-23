@@ -66,12 +66,14 @@ def sort_into_regions(dirtydf):
            'NEW YORK CITY, NY', 'IRVINGTON, NY', 'LONG ISLAND CITY, NY',
            'NYC, NY']
 
-    dmv = ['WASHINGTON, DC', 'WASHINGTON, DC, DC', 'WASHINGTON DC, DC',
-           'MCLEAN, VA', 'RETSON, VA', 'STERLING, VA', 'ALEXANDRIA, VA',
+    dmv = dirtydf.loc[dirtydf.Location.map(lambda x: ', DC' in x)].Location.unique().tolist()
+    md = dirtydf.loc[dirtydf.Location.map(lambda x: ', DC' in x)].Location.unique().tolist()
+    va = ['MCLEAN, VA', 'RETSON, VA', 'STERLING, VA', 'ALEXANDRIA, VA',
            'ARLINGTON, VA', 'HERNDON, VA', 'ASHBURN, VA', 'MANASSAS, VA',
            'RESTON, VA', 'FALLS CHURCH, VA', 'FAIRFAX, VA',
-           'DULLES, VA', 'BETHESDA, MD', 'SILVER SPRING, MD', 'COLUMBIA, MD',
-           'ROCKVILLE, MD']
+           'DULLES, VA']
+    dmv.extend(md)
+    dmv.extend(va)
 
     cleandf['Region'] = ['BAYAREA' if x in bay_area else 'NYC' if x in nyc
                          else 'DC' if x in dmv else 'OTHER'
