@@ -21,7 +21,7 @@ plt.style.use('seaborn-whitegrid')
 sns.set_style("white")
 
 
-def overlapping_density(package='sns', input_vars=['Role'], target_vars='Salary'):
+def overlapping_density(data, package='sns', input_cat='Role', target_vars='Salary'):
     """
     Function takes package name, input variables(categories), and target variable as input.
     Returns a figure with overlaping density plots on a single set of axes.
@@ -35,23 +35,24 @@ def overlapping_density(package='sns', input_vars=['Role'], target_vars='Salary'
     :param target_vars:    the y variable of your plot, what you are comparing
     :return:               fig to be enhanced in subsequent visualization functions
     """
+    input_vars = set(list(data[input_cat]))
 
     # Set size of figure
-    fig,axes = plt.subplots(figsize=(16, 10), dpi=80, nrow=nrow)
+    fig,axes = plt.subplots(figsize=(16, 10), dpi=80)
 
     # Starter code for figuring out which package to use
     if package == "sns":
         for variable in input_vars:
-            sns.kdeplot(clean[target_vars], hue=input_vars)
+            sns.kdeplot(data[target_vars], hue=input_vars)
        
     elif package == 'matplotlib':
         for variable in input_vars:
-            plt.plot(clean[target_vars], label=None, linewidth=None, color=None, figure = fig)
+            plt.plot(data[data[input_vars]==variable][target_vars], label=variable, linewidth=None, color=None, figure = fig)
 
     return fig
 
 
-def boxplot_plot(package='sns', input_vars=['Role'], target_vars='Salary'):
+def boxplot_plot(data, package='sns', input_cat='Role', target_vars='Salary'):
     """
     Same specifications and requirements as overlapping density plot
 
@@ -65,17 +66,19 @@ def boxplot_plot(package='sns', input_vars=['Role'], target_vars='Salary'):
     :param target_vars:    the y variable of your plot, what you are comparing
     :return:               fig to be enhanced in subsequent visualization functions
     """
+    input_vars = set(list(data[input_cat]))
+
     # Set size of figure
-    fig,axes = plt.subplots(figsize=(16, 10), dpi=80, nrow=nrow)
+    fig = plt.figure(figsize=(16, 10), dpi=80)
     
     # Starter code for figuring out which package to use
     if package == "sns":
         for variable in input_vars:
-            sns.boxplot(clean[target_vars], hue=input_vars, ax=axes[nr])
+            sns.boxplot(data[target_vars], hue=input_vars)
        
     elif package == 'matplotlib': # apparently want a line plot here?
         for variable in input_vars:
-            plt.box(clean[clean[variable][target_vars], label=variable, linewidth=None, color=None, figure = fig, kind='hist')
+            plt.box(data[data[input_vars]==variable][target_vars], label=variable, linewidth=None, color=None, figure = fig)
 
     return fig
 

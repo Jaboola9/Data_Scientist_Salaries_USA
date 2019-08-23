@@ -14,13 +14,15 @@ cleaned bit of the dataset.
 """
 
 
+import pandas as pd
+
 def convert_obj_to_numerical(dirtydf, col):
     """Convert entries of a objects/string columns to integers by default."""
     out = dirtydf
     if 'Salary' in col:
-        out[col] = out[col].map(lambda x: x.replace(',', '')).map(int)
+        out[col] = dirtydf[col].map(lambda x: x.replace(',', '')).map(int)
     elif 'Year' in col:
-        out[col] = out[col].map(int)
+        out[col] = dirtydf[col].map(int)
 
     return out
 
@@ -73,9 +75,10 @@ def sort_into_regions(dirtydf):
            'DULLES, VA', 'BETHESDA, MD', 'SILVER SPRING, MD', 'COLUMBIA, MD',
            'ROCKVILLE, MD']
 
-    cleandf['Region'] = ['BAYAREA' if x in bay_area else 'NYC' if x in nyc
+    cleandf['region'] = ['BAYAREA' if x in bay_area else 'NYC' if x in nyc
                          else 'DC' if x in dmv else 'OTHER'
                          for x in cleandf.Location]
+    
     return cleandf
 
 
@@ -98,6 +101,7 @@ def sort_into_industry(dirtydf):
             'STRIPE INC', 'YELP INC', 'A MEDIUM CORPORATION', 'REDDIT INC',
             'WHATSAPP INC', 'UDACITY INC', 'CISCO SYSTEMS INC']
     
+    # automate this
     fin = ['VISA USA INC', 'VISA TECHNOLOGY & OPERATIONS LLC', "MOODY'S ANALYTICS",
            'S&P GLOBAL MARKET INTELLIGENCE INC', 'S&P GLOBAL INC', 'BLOOMBERG LP',
            'HASH FINANCE LLC', 'ZESTFINANCE INC', 'APPLIED DATA FINANCE LLC',
@@ -172,7 +176,7 @@ def sort_into_industry(dirtydf):
              'YOTABITES CONSULTING LLC', 'MCKINSEY & COMPANY INC UNITED STATES', 'BOOZ ALLEN HAMILTON INC',
              'THE ADVISORY BOARD COMPANY']
     
-    cleandf['Industry'] = ['TECH' if x in tech 
+    cleandf['industry'] = ['TECH' if x in tech 
                            else 'FINANCE' if x in fin 
                            else 'INSURANCE' if x in ins 
                            else 'CONSULTING' if x in cnslt
@@ -183,12 +187,52 @@ def sort_into_industry(dirtydf):
 def remove_uncertified_data(dirtydf):
     """Remove data that has not been certified."""
     cleandf = dirtydf[dirtydf['Status'] == 'CERTIFIED'].reset_index(drop=True)
+    
     return cleandf
 
 
-def full_clean(dirty_data):
+# TEST FUNCTIONS
+def drop_dupes(dirtydf):
+    """Drop duplicate rows for testing."""
+    cleandf = dirtydf.drop_duplicates()# remove repeat entries
+    
+    return cleandf
+
+
+def lowercase_columns(dirtydf):
+    """Convert column names to lowercase."""
+    column_name_map = dict(zip(dirtydf.columns,[x.lower() for x in dirtydf.columns]))
+    cleandf = dirtydf.rename(columns=column_name_map)
+    
+    return cleandf
+
+
+def remove_whitespace_columns(dirtydf):
+    """Removes whitespace from column names."""
+    column_name_map = dict(zip(dirtydf.columns,[x.replace(' ','') for x in dirtydf.columns]))
+    cleandf = dirtydf.rename(columns=column_name_map)
+    
+    return cleandf
+
+
+def remove_null_rows(dirtydf):
+    """Removes observations (rows) with null values."""
+    cleandf = dirtydf.dropna(how='any',axis=0) 
+    
+    return cleandf
+    
+def clean_for_testing(dirtydf):
+    """Perform suite of general data cleaning tasks."""
+    cleanA = drop_dupes(dirtydf)
+    cleanB = lowercase_columns(cleanA)
+    cleanC = remove_whitespace_columns(cleanB)
+    cleanD = remove_null_rows(cleanC)
+    
+    return cleanD
+   
+def full_clean():
     """Run all helper cleaning functions."""
-#     dirty_data = pd.read_csv("./data/dirty_data.csv")
+    dirty_data = pd.read_csv("./data/dirty_data.csv")
     cleaning_data1 = convert_obj_to_numerical(dirty_data, 'Salary')
     cleaning_data2 = convert_obj_to_numerical(cleaning_data1, 'Year')
     cleaning_data3 = rename_roles(cleaning_data2, 'SR. DATA SCIENTIST',
@@ -200,7 +244,8 @@ def full_clean(dirty_data):
                                   'ASSOCIATE DATA SCIENTIST')
     cleaning_data6 = sort_into_regions(cleaning_data5)
     cleaning_data7 = sort_into_industry(cleaning_data6)
-    cleaned_data = remove_uncertified_data(cleaning_data7)
+    cleaning_data8 = remove_uncertified_data(cleaning_data7)
+    cleaned_data = clean_for_testing(cleaning_data8)
 
     cleaned_data.to_csv('./data/cleaned_for_testing.csv', index=False)
 
