@@ -1,6 +1,5 @@
 """Functions for parsing Salary Information from h1bdata.info."""
 
-
 def stackoverflow_feed_sorter(feed, master_keys=['id', 'title', 'summary',
                                                  'location', 'updated',
                                                  'published']):
@@ -14,6 +13,7 @@ def stackoverflow_feed_sorter(feed, master_keys=['id', 'title', 'summary',
 
 def standardize_dict(dictionary, master):
     """Check dictionary keys against master. Return standardized output."""
+
     out = dict()
     for entry in master:
         if entry in dictionary.keys():
