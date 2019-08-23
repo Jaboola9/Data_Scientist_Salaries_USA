@@ -1,5 +1,6 @@
 """Functions for visualizations."""
 
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -88,6 +89,22 @@ def boxplot_plot(data, grouping='year', input_cat='role', target_vars='salary',
     return fig
 
 
+def stacked_area(data, xvalues='year', yvalues='role'):
+    """Stacked bar plot of DS roles over Time."""
+    years = list(set(data[xvalues]))
+    counts = pd.pivot_table(data, values='status', columns=yvalues,
+                            index=xvalues, aggfunc='count')
+    labels = list(counts.columns)
+    area_data = [counts.loc[x, :].tolist() for x in counts.index]
+    area_data_t = list(map(list, zip(*area_data)))
+
+    fig = plt.figure(figsize=(12, 10))
+    plt.stackplot(years, area_data_t, labels=labels)
+    plt.legend(fontsize=12)
+
+    return fig
+
+
 def visualization_one(data, output_image_name='Salary_Distribution_by_Role'):
     """Distribution of Salaries by Role."""
     fig = overlapping_density(data, input_cat='role', target_vars='salary')
@@ -120,6 +137,14 @@ def visualization_three(data, output_image_name='Salaries_over_Time'):
 def visualization_four(data, output_image_name='BoxPlot_Roles'):
     """Box plots of salaries by year, role."""
     fig = boxplot_plot(data)
+    plt.savefig(f'img/{output_image_name}.png', transparent=True,
+                figure=fig)
+    return fig
+
+
+def visualization_five(data, output_image_name='StackedAreaPlot'):
+    """Area plot of number of roles by time."""
+    fig = stacked_area(data)
     plt.savefig(f'img/{output_image_name}.png', transparent=True,
                 figure=fig)
     return fig
