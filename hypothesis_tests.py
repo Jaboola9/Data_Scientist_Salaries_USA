@@ -10,73 +10,222 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 import math
+from statsmodels.formula.api import ols
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+from scipy import stats
+import scikit_posthocs as ph
+import seaborn as sns
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
 
-def create_sample_dists(cleaned_data, y_var=None, categories=[]):
+def hypothesis_test_one(cleaned_data, alpha = 0.05):
     """
-    Each hypothesis test will require you to create a sample distribution from your data
-    Best make a repeatable function
-
+    Hypothesis Test One
+    H0: The mean salary of all roles are equal \
+    H1: The mean salary of at least one role is different
+    
+    :param alpha: the critical value of choice
     :param cleaned_data:
-    :param y_var: The numeric variable you are comparing
-    :param categories: the categories whose means you are comparing
-    :return: a list of sample distributions to be used in subsequent t-tests
-
+    :return:
     """
-    htest_dfs = []
+    return non_parametric_hypothesis_test_years(cleaned_data, 'role')
 
-    # Main chunk of code using t-tests or z-tests
-    return htest_dfs
-
-def compare_pval_alpha(p_val, alpha):
-    status = ''
-    if p_val > alpha:
-        status = "Fail to reject"
-    else:
-        status = 'Reject'
-    return status
-
-
-def hypothesis_test_one(alpha = None, cleaned_data):
+def hypothesis_test_two(cleaned_data, alpha = 0.05):
     """
-    Describe the purpose of your hypothesis test in the docstring
-    These functions should be able to test different levels of alpha for the hypothesis test.
-    If a value of alpha is entered that is outside of the acceptable range, an error should be raised.
-
+    Hypothesis Test One
+    H0: The mean salary of all regions are equal \
+    H1: The mean salary of at least one roll is different
+    
     :param alpha: the critical value of choice
     :param cleaned_data:
     :return:
     """
     # Get data for tests
-    comparison_groups = create_sample_dists(cleaned_data=None, y_var=None, categories=[])
+    return non_parametric_hypothesis_test_years(cleaned_data, 'region')
 
-    ###
-    # Main chunk of code using t-tests or z-tests, effect size, power, etc
-    ###
+def slice_by_year(df, year):
+    """
+    Return slice of cleaned data by year specified
+    """
+    slice_df = df[df['year'] == year]
+    return slice_df
 
-    # starter code for return statement and printed results
-    status = compare_pval_alpha(p_val, alpha)
-    assertion = ''
-    if status == 'Fail to reject':
-        assertion = 'cannot'
+def descriptive_stats(df):
+    """
+    Displays descriptive statistics for both categorical and non-categorical data
+    """
+    display(df.describe().T)
+    categoricals = list(df.select_dtypes(include=['object']).columns)
+    for column in categoricals:
+        print("The most common values in " + column + ":", df[column].value_counts()[:5])
+        print("The least common values in " + column + ":", df[column].value_counts()[-5:])
+
+def stack_df(df, column, values_list):
+    """
+    Returns a dataframe including entries with only the select values in selected columns
+    """
+    values_dfs = []
+    for value in values_list:
+        value_df =  df[df[column] == value]
+        values_dfs.append(value_df)
+    return(pd.concat(values_dfs))
+
+def focus_data(df):
+    """
+    Returns focused dataframe with 2017-2019 data
+    and the most common four roles ('DATA SCIENTIST,'\
+    'SENIOR DATA SCIENTIST,' 'LEAD DATA SCIENTIST,' \
+    and 'ASSOCIATE DATA SCIENTIST.
+    """
+    years = list(df.year.unique())
+    recent_years = years [3:6]
+    df_recent_years = stack_df(df, 'year', recent_years)
+    df_recent_years.columns
+    dropped_columns = ['company', 'location', 'startdate', 'status', 'submitdate']
+    df_focused = df_recent_years.drop(labels=dropped_columns, axis=1)
+    top_4_roles = list(df_focused.role.unique())[0:3]
+    top_4_roles.append(df_focused.role.unique()[5])
+    top_4_focused = stack_df(df_focused, 'role', top_4_roles)
+    return top_4_focused
+
+def describe_dependent_by_year_and_group(df, y_var, x_var, x_var_2=None):
+    """
+    Get granular descriptive statistics of the dependent variable organized by one or two independent variables
+    """
+    years = list(df['year'].unique())
+    for year in years:
+        year_df = slice_by_year(df,year)
+        print(year)
+        if x_var_2 == None:
+            display(year_df.groupby([x_var])[y_var].describe())
+        else:
+            display(year_df.groupby([x_var, x_var_2])[y_var].describe())
+
+def homogeneity_test_4_groups(df, y_var, x_var):
+    """
+    Tests 5th assumption that variances of a continuous variable (y_var) \
+    are roughly equal accross 4 groups within a categorical variable (x_var) \
+    using a Levene test
+    """
+    groups = list(df[x_var].unique())
+    print(x_var)
+    return stats.levene(df[y_var][df[x_var] == groups[0]], 
+                        df[y_var][df[x_var] == groups[1]],
+                        df[y_var][df[x_var] == groups[2]],
+                        df[y_var][df[x_var] == groups[3]])
+
+def homogenity_test_years(df):
+    """
+    Performs homogeneity_test_4_groups for each year of the dataset \
+    using salary as the continuous variable and role and region as the
+    two categorical variables
+    """
+    years = list(df['year'].unique())
+    for year in years:
+        df_year = slice_by_year(df,year)
+        print(year)
+        print(homogeneity_test_4_groups(df_year, 'salary', 'role'))
+        print(homogeneity_test_4_groups(df_year, 'salary', 'region'))
+
+def normality_test_4_groups(df, y_var, x_var):
+    """
+    Tests 6th assumption of a normal distribution of a continuous variables (y_var) \
+    are roughly equal accross groups within a categorical variable (x_var) using \
+    Shapiro-Wilk Test.
+    """
+    groups = list(df[x_var].unique())
+    for group in groups:
+        print(group)
+        shapiro_test = stats.shapiro(df[y_var][df[x_var] == group])
+        p_value = shapiro_test[1]
+        print(f"Shapiro-Wilk test")
+        if p_value > 0.05:
+            print(f"{year}: p-value={p_value}, SATISFIES #5.")
+        else:
+            print(f"{year}: p-value={p_value}, DOES NOT satisfy #5.")
+
+def normality_test_years(df):
+    """
+    Performs normality_test_4_groups for each year of the dataset \
+    using salary as the continuous variable and role and region as the
+    two categorical variables
+    """
+    years = list(df['year'].unique())
+    for year in years:
+        df_year = slice_by_year(df,year)
+        print(year)
+        print(ht.normality_test_4_groups(df_year, 'salary', 'role'))
+        print(ht.normality_test_4_groups(df_year, 'salary', 'region'))
+
+def non_parametric_hypothesis_test_4_groups(df, y_var, x_var):
+    """
+    Performs non-parametric Kruskal-Wallis Test to find if there \
+    is a significant difference between a continuous variable (y_var) across \
+    4 groups of a categorical variable (x_var)
+    """
+    groups = list(df[x_var].unique())
+    print(x_var)
+    stat, p = stats.kruskal(df[y_var][df[x_var] == groups[0]], 
+                            df[y_var][df[x_var] == groups[1]], 
+                            df[y_var][df[x_var] == groups[2]], 
+                            df[y_var][df[x_var] == groups[3]])
+    print('Statistics = %.3f, p = %.2f' % (stat, p))
+    # interpret
+    alpha = 0.05
+    if p > alpha:
+        print('Same distributions (fail to reject H0) \n')
     else:
-        assertion = "can"
-        # calculations for effect size, power, etc here as well
+        print('Different distributions (reject H0) \n')
 
-    print(f'Based on the p value of {p_val} and our aplha of {alpha} we {status.lower()}  the null hypothesis.'
-          f'\n Due to these results, we  {assertion} state that there is a difference between NONE')
-
-    if assertion == 'can':
-        print(f"with an effect size, cohen's d, of {str(coh_d)} and power of {power}.")
-    else:
-        print(".")
-
-    return status
-
-def hypothesis_test_two():
-    pass
-
-def hypothesis_test_three():
-    pass
-
-def hypothesis_test_four():
-    pass
+def non_parametric_hypothesis_test_years(df, x_var):
+    """
+    Performs non_parametric_test_4_groups for each year of the dataset \
+    using salary as the continuous variable with the x_var selecting categorical
+    """
+    years = list(df['year'].unique())
+    for year in years:
+        df_year = slice_by_year(df,year)
+        print(f"Kruskal-Wallis Test results for {year}'s data:")
+        print(non_parametric_hypothesis_test_4_groups(df_year, 'salary', x_var))
+        
+def posthoc_test_years(df, y_var, x_var):
+    """
+    Performs Conover-Iman posthoc test for the non-parametric \
+    Kruskal-Wallis to find which groups have significant differences \
+    (score above 0.05)
+    """
+    years = list(df['year'].unique())
+    for year in years:
+        print(year)
+        df_year = slice_by_year(df,year)
+        display(ph.posthoc_conover(df_year, 
+                                   val_col=y_var, 
+                                   group_col=x_var, 
+                                   p_adjust = 'holm').round(3))
+        
+def qq_test_4_groups(df, y_var, x_var):
+    """
+    Visually tests 6th assumption of a normal distribution of a continuous variables (y_var) \
+    are roughly equal accross groups within a categorical variable (x_var) using \
+    using quantile-quantile plots
+    """
+    groups = list(df[x_var].unique())
+    print(x_var)
+    sm.qqplot(df[y_var][df[x_var] == groups[0]], fit=True, line='45') 
+    sm.qqplot(df[y_var][df[x_var] == groups[0]], fit=True, line='45')
+    sm.qqplot(df[y_var][df[x_var] == groups[0]], fit=True, line='45')
+    sm.qqplot(df[y_var][df[x_var] == groups[0]], fit=True, line='45')
+    plt.show()
+    
+def qq_test_years(df):
+    """
+    Performs homogeneity_test_4_groups for each year of the dataset \
+    using salary as the continuous variable and role and region as the
+    two categorical variables
+    """
+    years = list(df['year'].unique())
+    for year in years:
+        df_year = slice_by_year(df,year)
+        print(year)
+        print(qq_test_4_groups(df_year, 'salary', 'role'))
+        print(qq_test_4_groups(df_year, 'salary', 'region'))
