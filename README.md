@@ -12,3 +12,5 @@ Cleaning: data_cleaning.py
 Visualization Scripts: visualizations.py
 Data: data/dirtydata.csv, data/cleaned_for_testing.csv
 Raw Data: Pickles under /data
+Technical notebook: TechnicalNotebook.ipynb
+Non-technical notebook: hypothesis_testing.ipynb
