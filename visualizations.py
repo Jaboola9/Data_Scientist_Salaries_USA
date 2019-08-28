@@ -89,19 +89,20 @@ def boxplot_plot(data, grouping='year', input_cat='role', target_vars='salary',
     return fig
 
 
-def stacked_area(data, xvalues='year', yvalues='role'):
+def stacked_area(data):
     """Stacked bar plot of DS roles over Time."""
-    years = list(set(data[xvalues]))
-    counts = pd.pivot_table(data, values='status', columns=yvalues,
-                            index=xvalues, aggfunc='count')
+    years = list(set(data['year']))
+    counts = pd.pivot_table(data, values='status', columns='role',
+                            index='year', aggfunc='count')
     labels = list(counts.columns)
     area_data = [counts.loc[x, :].tolist() for x in counts.index]
     area_data_t = list(map(list, zip(*area_data)))
 
     fig = plt.figure(figsize=(12, 10))
-    plt.stackplot(years, area_data_t, labels=labels)
+    fig = plt.stackplot(years, area_data_t, labels=labels)
     plt.legend(fontsize=12)
-
+    plt.show()
+    
     return fig
 
 
