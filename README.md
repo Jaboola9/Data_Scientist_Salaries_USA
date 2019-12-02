@@ -1,5 +1,5 @@
-# Module3_API_Hypothesis
-*Flatiron Module 3 Project on API data extraction and hypothesis testing*
+# Impacts on Data Science Salaries
+*Flatiron Module 3 Project on API data extraction and hypothesis testing using data science salaries*
 
 **Members:** Michelle J. Kim, Ian Reinert
 
